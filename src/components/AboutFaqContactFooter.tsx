@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react';
-import { CheckCircle2, ChevronDown, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Check, CheckCircle2, ChevronDown, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { FAQ_ITEMS, JAIPUR_LOCALITIES } from '../data/fitcircleData';
 import {
   buildEnquiryFormWhatsAppUrl,
@@ -10,6 +11,52 @@ import {
 import { Reveal } from './Reveal';
 import { SOCIAL_PROFILES, SocialBrandIcon } from './SocialIcons';
 import { WhatsAppIcon } from './WhatsAppIcon';
+
+function AnimatedSuccessCheckmark() {
+  return (
+    <div className="relative w-11 h-11 flex items-center justify-center shrink-0" aria-hidden="true">
+      {/* Soft expanding pulse ring */}
+      <motion.span
+        initial={{ scale: 0.65, opacity: 0.55 }}
+        animate={{ scale: 1.4, opacity: 0 }}
+        transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute inset-0 rounded-full bg-[#79BE43]/30"
+      />
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 20 }}
+        className="relative w-11 h-11 rounded-full bg-[#E9F6F4] flex items-center justify-center"
+      >
+        <svg viewBox="0 0 36 36" className="w-8 h-8">
+          <motion.circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke="#0B8F86"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0.4 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.38, ease: 'easeOut' }}
+          />
+          <motion.path
+            d="M11.5 18.5 L16 23 L24.5 13.5"
+            fill="none"
+            stroke="#4C8720"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.32, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          />
+        </svg>
+      </motion.div>
+    </div>
+  );
+}
 
 const INITIAL_FORM: EnquiryFormValues = {
   name: '',
@@ -28,9 +75,17 @@ export function AboutFaqContactFooter() {
   const [form, setForm] = useState<EnquiryFormValues>(INITIAL_FORM);
   const [formError, setFormError] = useState<string>('');
   const [generatedWhatsappUrl, setGeneratedWhatsappUrl] = useState<string>('');
+  const [submissionCount, setSubmissionCount] = useState<number>(0);
+  const [justSubmitted, setJustSubmitted] = useState<boolean>(false);
   const [newsletterEmail, setNewsletterEmail] = useState<string>('');
   const [newsletterError, setNewsletterError] = useState<string>('');
   const [subscribedEmail, setSubscribedEmail] = useState<string>('');
+
+  useEffect(() => {
+    if (!justSubmitted) return;
+    const timer = window.setTimeout(() => setJustSubmitted(false), 2600);
+    return () => window.clearTimeout(timer);
+  }, [justSubmitted]);
 
   function handleNewsletterSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -79,6 +134,8 @@ export function AboutFaqContactFooter() {
 
     const url = buildEnquiryFormWhatsAppUrl(form);
     setGeneratedWhatsappUrl(url);
+    setSubmissionCount((prev) => prev + 1);
+    setJustSubmitted(true);
 
     // Trigger click-to-chat in a new tab using a transient anchor (avoiding window.alert)
     const link = document.createElement('a');
@@ -480,38 +537,69 @@ export function AboutFaqContactFooter() {
                   </p>
                 )}
 
-                <button
+                <motion.button
                   type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#0B8F86] text-white font-semibold text-base hover:bg-[#09766E] transition-colors cursor-pointer"
+                  whileTap={{ scale: 0.98 }}
+                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-base transition-colors cursor-pointer ${
+                    justSubmitted
+                      ? 'bg-[#4C8720] text-white'
+                      : 'bg-[#0B8F86] text-white hover:bg-[#09766E]'
+                  }`}
                 >
-                  <WhatsAppIcon className="w-5 h-5 shrink-0" />
-                  <span>Continue to WhatsApp Enquiry</span>
-                </button>
+                  {justSubmitted ? (
+                    <>
+                      <motion.span
+                        initial={{ scale: 0.5, rotate: -15 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                        className="inline-flex"
+                      >
+                        <Check className="w-5 h-5 shrink-0" aria-hidden="true" />
+                      </motion.span>
+                      <span>WhatsApp Enquiry Ready!</span>
+                    </>
+                  ) : (
+                    <>
+                      <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                      <span>Continue to WhatsApp Enquiry</span>
+                    </>
+                  )}
+                </motion.button>
 
-                {generatedWhatsappUrl && (
-                  <div
-                    role="status"
-                    className="rounded-xl bg-white border border-[#0B8F86]/40 p-4 space-y-2 text-sm text-[#123047]"
-                  >
-                    <p className="font-semibold text-[#0B8F86]">
-                      Your WhatsApp message is ready!
-                    </p>
-                    <p className="text-[#4A6072]">
-                      Please press <strong>Send</strong> inside WhatsApp to deliver your enquiry to{' '}
-                      <span className="tabular-nums">{WHATSAPP_DISPLAY}</span>. (No information was
-                      stored in any website database.)
-                    </p>
-                    <a
-                      href={generatedWhatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 font-semibold text-[#0B8F86] underline underline-offset-4"
+                <AnimatePresence mode="wait">
+                  {generatedWhatsappUrl && (
+                    <motion.div
+                      key={submissionCount}
+                      role="status"
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                      className="rounded-2xl bg-white border border-[#0B8F86]/40 p-4 sm:p-5 flex items-start gap-3.5 text-sm text-[#123047] shadow-xs"
                     >
-                      <span>Open WhatsApp chat again if it did not launch</span>
-                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                    </a>
-                  </div>
-                )}
+                      <AnimatedSuccessCheckmark />
+                      <div className="space-y-1.5 min-w-0">
+                        <p className="font-display font-bold text-base text-[#0B8F86]">
+                          Your WhatsApp message is ready!
+                        </p>
+                        <p className="text-[#4A6072] leading-relaxed">
+                          Please press <strong>Send</strong> inside WhatsApp to deliver your
+                          enquiry to <span className="tabular-nums">{WHATSAPP_DISPLAY}</span>. (No
+                          information was stored in any website database.)
+                        </p>
+                        <a
+                          href={generatedWhatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 pt-0.5 font-semibold text-[#0B8F86] underline underline-offset-4"
+                        >
+                          <span>Open WhatsApp chat again if it did not launch</span>
+                          <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                        </a>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </form>
             </div>
           </div>

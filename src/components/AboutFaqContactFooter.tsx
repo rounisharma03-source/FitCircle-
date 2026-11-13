@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Check, CheckCircle2, ChevronDown, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
+import { Check, CheckCircle2, ChevronDown, ExternalLink, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { FAQ_ITEMS, JAIPUR_LOCALITIES } from '../data/fitcircleData';
+import { FAQ_ITEMS } from '../data/fitcircleData';
 import {
   buildEnquiryFormWhatsAppUrl,
   buildWhatsAppUrl,
@@ -11,6 +11,8 @@ import {
 import { Reveal } from './Reveal';
 import { SOCIAL_PROFILES, SocialBrandIcon } from './SocialIcons';
 import { WhatsAppIcon } from './WhatsAppIcon';
+
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaQi50abLG_qdoCWMGhI0SR6TSTiQNWKllE2Q6wYj8bU7WOq7Chh-t16KwaK1Xd2rQ/exec";
 
 function AnimatedSuccessCheckmark() {
   return (
@@ -62,18 +64,18 @@ const INITIAL_FORM: EnquiryFormValues = {
   name: '',
   whatsappNumber: '',
   societyName: '',
-  locality: '',
-  programme: 'Kids Activity Club (10–13 years)',
-  ageCategory: '10–13 years (Child)',
+  program: 'Kids Club',
   preferredTime: 'Evening (5:00 PM – 8:00 PM)',
   message: '',
-  consent: false,
 };
 
 export function AboutFaqContactFooter() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [form, setForm] = useState<EnquiryFormValues>(INITIAL_FORM);
+  const [honeypot, setHoneypot] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submittedSuccess, setSubmittedSuccess] = useState<boolean>(false);
   const [generatedWhatsappUrl, setGeneratedWhatsappUrl] = useState<string>('');
   const [submissionCount, setSubmissionCount] = useState<number>(0);
   const [justSubmitted, setJustSubmitted] = useState<boolean>(false);
@@ -102,49 +104,70 @@ export function AboutFaqContactFooter() {
     setNewsletterEmail('');
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (isSubmitting) return;
     setFormError('');
 
+    // Hidden honeypot check to silently block spam bots
+    if (honeypot.trim() !== '') {
+      setSubmittedSuccess(true);
+      setSubmissionCount((prev) => prev + 1);
+      setJustSubmitted(true);
+      return;
+    }
+
     if (!form.name.trim()) {
-      setFormError('Please enter your full name.');
+      setFormError('Please enter parent or your name.');
       return;
     }
 
     const digitsOnly = form.whatsappNumber.replace(/\D/g, '');
-    if (digitsOnly.length < 10) {
-      setFormError('Please enter a valid 10-digit WhatsApp mobile number.');
+    if (!/^\d{10}$/.test(digitsOnly)) {
+      setFormError('Please enter a valid 10-digit WhatsApp number.');
       return;
     }
 
     if (!form.societyName.trim()) {
-      setFormError('Please enter your residential society or apartment name.');
+      setFormError('Please enter your society or community name.');
       return;
     }
 
-    if (!form.locality.trim()) {
-      setFormError('Please select or enter your locality in Jaipur.');
-      return;
+    setIsSubmitting(true);
+
+    const formData: Record<string, string> = {
+      name: form.name.trim(),
+      whatsappNumber: digitsOnly,
+      societyName: form.societyName.trim(),
+      program: form.program,
+      preferredTime: form.preferredTime,
+      message: form.message.trim(),
+    };
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formData),
+      });
+
+      const url = buildEnquiryFormWhatsAppUrl({
+        ...form,
+        whatsappNumber: digitsOnly,
+      });
+      setGeneratedWhatsappUrl(url);
+      setSubmittedSuccess(true);
+      setSubmissionCount((prev) => prev + 1);
+      setJustSubmitted(true);
+      setForm(INITIAL_FORM);
+    } catch {
+      setFormError(
+        'Unable to submit right now. Please try again or use the WhatsApp enquiry button.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (!form.consent) {
-      setFormError('Please tick the consent box to prepare your WhatsApp enquiry.');
-      return;
-    }
-
-    const url = buildEnquiryFormWhatsAppUrl(form);
-    setGeneratedWhatsappUrl(url);
-    setSubmissionCount((prev) => prev + 1);
-    setJustSubmitted(true);
-
-    // Trigger click-to-chat in a new tab using a transient anchor (avoiding window.alert)
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
 
   return (
@@ -271,8 +294,8 @@ export function AboutFaqContactFooter() {
                   Enquire About Your Jaipur Society
                 </h2>
                 <p className="mt-3 text-base text-[#4A6072] leading-relaxed">
-                  Fill out the enquiry form to generate a ready-to-send WhatsApp message—or start a
-                  direct chat with our pilot team.
+                  Fill out the enquiry form and our team will reach out shortly—or start a direct
+                  WhatsApp chat with our Jaipur team.
                 </p>
               </div>
 
@@ -329,31 +352,46 @@ export function AboutFaqContactFooter() {
               </div>
 
               <p className="text-xs text-[#4A6072] leading-relaxed">
-                Privacy notice: This pilot launch website does not store form submissions in a
-                database. Submitting the form prepares a pre-filled WhatsApp message directly in
-                your WhatsApp app, where you press Send.
+                Privacy notice: We only collect your name, WhatsApp number, society name, preferred
+                programme age group, and timing so our team can contact you. Nothing else about
+                children is collected beyond age group.
               </p>
             </div>
 
             {/* Right Form Column */}
             <div className="lg:col-span-7 bg-[#F7FAF8] rounded-3xl border border-[#123047]/10 p-5 sm:p-8">
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                {/* Hidden honeypot field to block spam bots */}
+                <div className="sr-only" aria-hidden="true">
+                  <label htmlFor="enquiry-company">Leave this field empty</label>
+                  <input
+                    id="enquiry-company"
+                    name="company"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label
                       htmlFor="enquiry-name"
                       className="block text-sm font-semibold text-[#123047] mb-1.5"
                     >
-                      Your Name <span className="text-[#C8641F]">*</span>
+                      Parent / Your Name <span className="text-[#C8641F]">*</span>
                     </label>
                     <input
                       id="enquiry-name"
+                      name="name"
                       type="text"
                       required
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder="e.g., Ananya Sharma"
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
+                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
                     />
                   </div>
 
@@ -366,12 +404,15 @@ export function AboutFaqContactFooter() {
                     </label>
                     <input
                       id="enquiry-whatsapp"
+                      name="whatsappNumber"
                       type="tel"
+                      inputMode="numeric"
+                      maxLength={14}
                       required
                       value={form.whatsappNumber}
                       onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
-                      placeholder="10-digit mobile number"
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none tabular-nums"
+                      placeholder="10-digit WhatsApp number"
+                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none tabular-nums"
                     />
                   </div>
                 </div>
@@ -382,120 +423,64 @@ export function AboutFaqContactFooter() {
                       htmlFor="enquiry-society"
                       className="block text-sm font-semibold text-[#123047] mb-1.5"
                     >
-                      Society / Apartment Name <span className="text-[#C8641F]">*</span>
+                      Society / Community Name <span className="text-[#C8641F]">*</span>
                     </label>
                     <input
                       id="enquiry-society"
+                      name="societyName"
                       type="text"
                       required
                       value={form.societyName}
                       onChange={(e) => setForm({ ...form, societyName: e.target.value })}
-                      placeholder="e.g., Rangoli Gardens"
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
+                      placeholder="e.g., Rangoli Gardens, Vaishali Nagar"
+                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
                     />
                   </div>
 
                   <div>
                     <label
-                      htmlFor="enquiry-locality"
+                      htmlFor="enquiry-program"
                       className="block text-sm font-semibold text-[#123047] mb-1.5"
                     >
-                      Jaipur Locality <span className="text-[#C8641F]">*</span>
+                      Program <span className="text-[#C8641F]">*</span>
                     </label>
                     <select
-                      id="enquiry-locality"
-                      required
-                      value={form.locality}
-                      onChange={(e) => setForm({ ...form, locality: e.target.value })}
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-sm text-[#123047] focus:border-[#0B8F86] focus:outline-none"
+                      id="enquiry-program"
+                      name="program"
+                      value={form.program}
+                      onChange={(e) => setForm({ ...form, program: e.target.value })}
+                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-3.5 py-2.5 text-base sm:text-sm text-[#123047] focus:border-[#0B8F86] focus:outline-none"
                     >
-                      <option value="">Select locality</option>
-                      {JAIPUR_LOCALITIES.map((loc) => (
-                        <option key={loc} value={loc}>
-                          {loc}
-                        </option>
-                      ))}
+                      <option value="Kids Club">Kids Club (Age 10–13 yrs)</option>
+                      <option value="Teen Sports">Teen Sports (Age 14–18 yrs)</option>
+                      <option value="Adult Workouts">Adult Workouts (Age 35–55 yrs)</option>
+                      <option value="Family Sessions">Family Sessions (All Ages)</option>
                     </select>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label
-                      htmlFor="enquiry-programme"
-                      className="block text-sm font-semibold text-[#123047] mb-1.5"
-                    >
-                      Programme of Interest
-                    </label>
-                    <select
-                      id="enquiry-programme"
-                      value={form.programme}
-                      onChange={(e) => setForm({ ...form, programme: e.target.value })}
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-3 py-2.5 text-sm text-[#123047] focus:border-[#0B8F86] focus:outline-none"
-                    >
-                      <option value="Kids Activity Club (10–13 years)">
-                        Kids Activity Club (10–13 yrs)
-                      </option>
-                      <option value="Teen Fitness & Sports Club (14–18 years)">
-                        Teen Fitness & Sports (14–18 yrs)
-                      </option>
-                      <option value="Adult Functional Fitness (35–55 years)">
-                        Adult Functional Fitness (35–55 yrs)
-                      </option>
-                      <option value="Family & Community Activities">
-                        Family & Community Events
-                      </option>
-                      <option value="Society / RWA Partnership & Demo">
-                        Society / RWA Partnership
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="enquiry-age"
-                      className="block text-sm font-semibold text-[#123047] mb-1.5"
-                    >
-                      Age Category
-                    </label>
-                    <select
-                      id="enquiry-age"
-                      value={form.ageCategory}
-                      onChange={(e) => setForm({ ...form, ageCategory: e.target.value })}
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-3 py-2.5 text-sm text-[#123047] focus:border-[#0B8F86] focus:outline-none"
-                    >
-                      <option value="10–13 years (Child)">10–13 years (Child)</option>
-                      <option value="14–18 years (Teen)">14–18 years (Teen)</option>
-                      <option value="35–55 years (Adult)">35–55 years (Adult)</option>
-                      <option value="Family / Multiple Age Groups">
-                        Family / Multiple Ages
-                      </option>
-                      <option value="RWA / Society Management">RWA / Management</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="enquiry-time"
-                      className="block text-sm font-semibold text-[#123047] mb-1.5"
-                    >
-                      Preferred Time
-                    </label>
-                    <select
-                      id="enquiry-time"
-                      value={form.preferredTime}
-                      onChange={(e) => setForm({ ...form, preferredTime: e.target.value })}
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-3 py-2.5 text-sm text-[#123047] focus:border-[#0B8F86] focus:outline-none"
-                    >
-                      <option value="Morning (6:00 AM – 8:00 AM)">
-                        Morning (6:00 AM – 8:00 AM)
-                      </option>
-                      <option value="Evening (5:00 PM – 8:00 PM)">
-                        Evening (5:00 PM – 8:00 PM)
-                      </option>
-                      <option value="Flexible / Either Window">Flexible / Either</option>
-                    </select>
-                  </div>
+                <div>
+                  <label
+                    htmlFor="enquiry-time"
+                    className="block text-sm font-semibold text-[#123047] mb-1.5"
+                  >
+                    Preferred Time
+                  </label>
+                  <select
+                    id="enquiry-time"
+                    name="preferredTime"
+                    value={form.preferredTime}
+                    onChange={(e) => setForm({ ...form, preferredTime: e.target.value })}
+                    className="w-full rounded-xl bg-white border border-[#123047]/15 px-3.5 py-2.5 text-base sm:text-sm text-[#123047] focus:border-[#0B8F86] focus:outline-none"
+                  >
+                    <option value="Morning (6:00 AM – 8:00 AM)">
+                      Morning (6:00 AM – 8:00 AM)
+                    </option>
+                    <option value="Evening (5:00 PM – 8:00 PM)">
+                      Evening (5:00 PM – 8:00 PM)
+                    </option>
+                    <option value="Flexible / Either Window">Flexible / Either Window</option>
+                  </select>
                 </div>
 
                 <div>
@@ -503,30 +488,18 @@ export function AboutFaqContactFooter() {
                     htmlFor="enquiry-message"
                     className="block text-sm font-semibold text-[#123047] mb-1.5"
                   >
-                    Optional Enquiry Message
+                    Message <span className="text-[#4A6072] font-normal">(optional)</span>
                   </label>
                   <textarea
                     id="enquiry-message"
+                    name="message"
                     rows={3}
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
-                    placeholder="Share any questions about demo sessions, batch interest, or society space..."
-                    className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
+                    placeholder="Share any questions about demo sessions, batch timings, or society space..."
+                    className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
                   />
                 </div>
-
-                <label className="flex items-start gap-3 cursor-pointer text-sm text-[#4A6072]">
-                  <input
-                    type="checkbox"
-                    checked={form.consent}
-                    onChange={(e) => setForm({ ...form, consent: e.target.checked })}
-                    className="mt-1 w-4 h-4 rounded border-[#123047]/30 text-[#0B8F86] focus:ring-[#0B8F86]"
-                  />
-                  <span>
-                    I understand this prepares a WhatsApp message to FitCircle ({WHATSAPP_DISPLAY})
-                    and that I need to press Send inside WhatsApp to complete my enquiry.
-                  </span>
-                </label>
 
                 {formError && (
                   <p
@@ -537,37 +510,54 @@ export function AboutFaqContactFooter() {
                   </p>
                 )}
 
-                <motion.button
-                  type="submit"
-                  whileTap={{ scale: 0.98 }}
-                  className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-base transition-colors cursor-pointer ${
-                    justSubmitted
-                      ? 'bg-[#4C8720] text-white'
-                      : 'bg-[#0B8F86] text-white hover:bg-[#09766E]'
-                  }`}
-                >
-                  {justSubmitted ? (
-                    <>
-                      <motion.span
-                        initial={{ scale: 0.5, rotate: -15 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: 'spring', stiffness: 360, damping: 18 }}
-                        className="inline-flex"
-                      >
-                        <Check className="w-5 h-5 shrink-0" aria-hidden="true" />
-                      </motion.span>
-                      <span>WhatsApp Enquiry Ready!</span>
-                    </>
-                  ) : (
-                    <>
-                      <WhatsAppIcon className="w-5 h-5 shrink-0" />
-                      <span>Continue to WhatsApp Enquiry</span>
-                    </>
-                  )}
-                </motion.button>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <motion.button
+                    type="submit"
+                    disabled={isSubmitting}
+                    whileTap={isSubmitting ? undefined : { scale: 0.98 }}
+                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-base transition-colors ${
+                      isSubmitting
+                        ? 'bg-[#0B8F86]/70 text-white cursor-not-allowed'
+                        : justSubmitted
+                          ? 'bg-[#4C8720] text-white cursor-pointer'
+                          : 'bg-[#0B8F86] text-white hover:bg-[#09766E] cursor-pointer'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <span>Submitting...</span>
+                    ) : justSubmitted ? (
+                      <>
+                        <motion.span
+                          initial={{ scale: 0.5, rotate: -15 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                          className="inline-flex"
+                        >
+                          <Check className="w-5 h-5 shrink-0" aria-hidden="true" />
+                        </motion.span>
+                        <span>Enquiry Sent!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        <span>Submit Enquiry</span>
+                      </>
+                    )}
+                  </motion.button>
+
+                  <a
+                    href={buildWhatsAppUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white border border-[#0B8F86]/35 text-[#0B8F86] font-semibold text-base hover:bg-[#E9F6F4] transition-colors"
+                  >
+                    <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                    <span>WhatsApp Enquiry</span>
+                  </a>
+                </div>
 
                 <AnimatePresence mode="wait">
-                  {generatedWhatsappUrl && (
+                  {submittedSuccess && (
                     <motion.div
                       key={submissionCount}
                       role="status"
@@ -580,22 +570,23 @@ export function AboutFaqContactFooter() {
                       <AnimatedSuccessCheckmark />
                       <div className="space-y-1.5 min-w-0">
                         <p className="font-display font-bold text-base text-[#0B8F86]">
-                          Your WhatsApp message is ready!
+                          Thanks! We&apos;ll WhatsApp you shortly.
                         </p>
                         <p className="text-[#4A6072] leading-relaxed">
-                          Please press <strong>Send</strong> inside WhatsApp to deliver your
-                          enquiry to <span className="tabular-nums">{WHATSAPP_DISPLAY}</span>. (No
-                          information was stored in any website database.)
+                          Your enquiry has been received by FitCircle Jaipur (
+                          <span className="tabular-nums">{WHATSAPP_DISPLAY}</span>).
                         </p>
-                        <a
-                          href={generatedWhatsappUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 pt-0.5 font-semibold text-[#0B8F86] underline underline-offset-4"
-                        >
-                          <span>Open WhatsApp chat again if it did not launch</span>
-                          <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                        </a>
+                        {generatedWhatsappUrl && (
+                          <a
+                            href={generatedWhatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 pt-0.5 font-semibold text-[#0B8F86] underline underline-offset-4"
+                          >
+                            <span>Send a copy directly on WhatsApp</span>
+                            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                          </a>
+                        )}
                       </div>
                     </motion.div>
                   )}

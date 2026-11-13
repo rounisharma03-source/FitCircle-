@@ -50,29 +50,24 @@ export interface EnquiryFormValues {
   name: string;
   whatsappNumber: string;
   societyName: string;
-  locality: string;
-  programme: string;
-  ageCategory: string;
+  program: string;
   preferredTime: string;
   message: string;
-  consent: boolean;
 }
 
 export function buildEnquiryFormWhatsAppUrl(values: EnquiryFormValues): string {
   const lines = [
-    'Hi FitCircle! I am submitting an enquiry from your Jaipur pilot launch website.',
+    'Hi FitCircle! I am submitting an enquiry from your Jaipur website.',
     '',
-    `Name: ${values.name.trim()}`,
+    `Parent / Name: ${values.name.trim()}`,
     `WhatsApp Number: ${values.whatsappNumber.trim()}`,
-    `Society Name: ${values.societyName.trim()}`,
-    `Jaipur Locality: ${values.locality.trim()}`,
-    `Programme of Interest: ${values.programme}`,
-    `Age Category: ${values.ageCategory}`,
+    `Society / Community: ${values.societyName.trim()}`,
+    `Program: ${values.program}`,
     `Preferred Time: ${values.preferredTime}`,
   ];
 
   if (values.message.trim()) {
-    lines.push(`Additional Note: ${values.message.trim()}`);
+    lines.push(`Message: ${values.message.trim()}`);
   }
 
   lines.push('', 'Please share the details and next steps.');

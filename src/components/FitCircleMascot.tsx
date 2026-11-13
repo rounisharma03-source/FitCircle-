@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 
 const MASCOT_LINES = [
-  'Fit Circle Delivers Fit Society, Fit Community.',
-  'Move More. Live Together.',
-  'Expert Curated. Community Driven. Fun Powered.',
+  'Fit Circle Delivers Fit Society, Fit Community',
+  'Move More · Live Together',
+  'Expert Curated · Community Driven · Fun Powered',
 ];
 
 export function FitCircleMascot() {

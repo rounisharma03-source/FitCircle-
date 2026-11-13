@@ -25,7 +25,7 @@ export function SocietyAndFutureSections() {
                 className="font-display font-bold text-3xl sm:text-4xl text-white tracking-tight"
                 style={{ textWrap: 'balance' }}
               >
-                Make Your Society a More Active Community.
+                Make Your Society a More Active Community
               </h2>
 
               <p className="text-base sm:text-lg text-white/80 leading-relaxed">

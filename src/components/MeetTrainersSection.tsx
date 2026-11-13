@@ -1,9 +1,9 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
-import trainerKidsImg from '../assets/images/trainer_kids_coach_1794513053569.jpg';
-import trainerTeenImg from '../assets/images/trainer_teen_sports_1794513053646.jpg';
-import trainerAdultImg from '../assets/images/trainer_adult_functional_1794513053226.jpg';
-import trainerYogaImg from '../assets/images/trainer_yoga_community_1794513053722.jpg';
+import trainerKidsImg from '../assets/images/vector_trainer_kids_1794564594837.jpg';
+import trainerTeenImg from '../assets/images/vector_trainer_teen_1794564596312.jpg';
+import trainerAdultImg from '../assets/images/vector_trainer_adult_1794564595745.jpg';
+import trainerYogaImg from '../assets/images/vector_trainer_yoga_1794564597367.jpg';
 import { buildWhatsAppUrl } from '../utils/whatsapp';
 import { ResilientImage } from './ResilientImage';
 import { Reveal } from './Reveal';
@@ -134,7 +134,7 @@ export function MeetTrainersSection() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="max-w-2xl">
               <p className="text-xs font-bold text-[#0B8F86] uppercase tracking-wider">
-                Meet the Trainers · Coaching Bar
+                Meet the Trainers
               </p>
               <h2
                 className="mt-2 font-display font-bold text-3xl sm:text-4xl text-[#123047] tracking-tight"
@@ -197,7 +197,7 @@ export function MeetTrainersSection() {
             >
               <div className="flex items-center justify-between gap-4">
                 <h3 className="font-display font-bold text-lg text-[#123047]">
-                  Add Trainer Profile to Horizontal Bar
+                  Add Trainer Profile
                 </h3>
                 <span className="text-xs text-[#4A6072]">Live preview in current session</span>
               </div>
@@ -308,7 +308,7 @@ export function MeetTrainersSection() {
                   type="submit"
                   className="px-5 py-2.5 rounded-xl bg-[#0B8F86] text-white text-sm font-semibold hover:bg-[#09766E] transition-colors cursor-pointer"
                 >
-                  Add to Trainers Bar
+                  Add Trainer
                 </button>
               </div>
             </form>
@@ -324,17 +324,17 @@ export function MeetTrainersSection() {
             {trainers.map((trainer) => (
               <article
                 key={trainer.id}
-                className="snap-start shrink-0 w-[290px] sm:w-[310px] bg-[#F7FAF8] rounded-3xl border border-[#123047]/10 overflow-hidden flex flex-col justify-between"
+                className="snap-start shrink-0 w-[260px] min-[380px]:w-[290px] sm:w-[310px] bg-[#F7FAF8] rounded-3xl border border-[#123047]/10 overflow-hidden flex flex-col justify-between"
               >
                 <div>
-                  <div className="aspect-square w-full bg-[#E8F3F1]">
+                  <div className="aspect-square w-full bg-[#F7FAF8]">
                     <ResilientImage
                       src={trainer.photo}
-                      alt={`${trainer.name} — ${trainer.role}`}
+                      alt={`Vector illustration of ${trainer.name} — ${trainer.role}`}
                       fallbackTitle={trainer.name}
                       fallbackSubtitle={trainer.role}
                       containerClassName="w-full h-full"
-                      className="w-full h-full object-cover object-top"
+                      className="w-full h-full object-cover"
                     />
                   </div>
 
@@ -370,7 +370,7 @@ export function MeetTrainersSection() {
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B8F86] text-white text-sm font-semibold hover:bg-[#09766E] transition-colors whitespace-nowrap shrink-0"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0B8F86] text-white text-sm font-semibold hover:bg-[#09766E] transition-colors sm:whitespace-nowrap shrink-0"
             >
               <WhatsAppIcon className="w-4 h-4 shrink-0" />
               <span>Collaborate on WhatsApp</span>

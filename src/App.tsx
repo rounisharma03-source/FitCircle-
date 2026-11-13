@@ -7,8 +7,6 @@ import { MotionConfig } from 'motion/react';
 import { AboutFaqContactFooter } from './components/AboutFaqContactFooter';
 import { ApproachAndProcessSections } from './components/ApproachAndProcessSections';
 import { CommunityAndTimingsSections } from './components/CommunityAndTimingsSections';
-import { CommunityReachSection } from './components/CommunityReachSection';
-import { FitnessCalculatorSection } from './components/FitnessCalculatorSection';
 import { FloatingControls } from './components/FloatingControls';
 import { HeroSection } from './components/HeroSection';
 import { MeetTrainersSection } from './components/MeetTrainersSection';
@@ -21,11 +19,11 @@ import { WhyAndAudienceSections } from './components/WhyAndAudienceSections';
 export default function App() {
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen flex flex-col bg-[#F7FAF8] text-[#123047]">
+      <div className="min-h-screen flex flex-col bg-[#F7FAF8] text-[#123047] overflow-x-clip">
       {/* 1. Navigation Bar */}
       <Navbar />
 
-      <main className="flex-1">
+      <main className="flex-1 overflow-x-clip">
         {/* 2. Hero Section */}
         <HeroSection />
 
@@ -43,12 +41,6 @@ export default function App() {
 
         {/* 12. Community Events & 13. Proposed Timings */}
         <CommunityAndTimingsSections />
-
-        {/* Community Reach D3.js Visual Map (Jaipur Localities) */}
-        <CommunityReachSection />
-
-        {/* Interactive Fitness & Activity Calculator */}
-        <FitnessCalculatorSection />
 
         {/* Community Voices / Testimonial Slider */}
         <TestimonialsSliderSection />

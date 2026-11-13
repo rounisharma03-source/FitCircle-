@@ -124,7 +124,7 @@ export function TestimonialsSliderSection() {
           </div>
 
           {/* Interactive Slider Viewport */}
-          <div className="mt-8 bg-white rounded-3xl border border-[#123047]/10 p-6 sm:p-10 overflow-hidden">
+          <div className="mt-8 bg-white rounded-3xl border border-[#123047]/10 p-5 sm:p-8 md:p-10 overflow-hidden">
             <div className="min-h-[220px] flex flex-col justify-between">
               <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
@@ -146,7 +146,7 @@ export function TestimonialsSliderSection() {
                     </span>
                   </div>
 
-                  <blockquote className="font-display font-medium text-xl sm:text-2xl text-[#123047] leading-relaxed max-w-4xl">
+                  <blockquote className="font-display font-medium text-lg sm:text-xl md:text-2xl text-[#123047] leading-relaxed max-w-4xl">
                     &ldquo;{current.quote}&rdquo;
                   </blockquote>
 
@@ -164,7 +164,7 @@ export function TestimonialsSliderSection() {
                       )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#F7FAF8] border border-[#123047]/15 text-xs sm:text-sm font-semibold text-[#123047] hover:border-[#0B8F86] hover:text-[#0B8F86] transition-colors whitespace-nowrap shrink-0"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#F7FAF8] border border-[#123047]/15 text-xs sm:text-sm font-semibold text-[#123047] hover:border-[#0B8F86] hover:text-[#0B8F86] transition-colors sm:whitespace-nowrap shrink-0"
                     >
                       <WhatsAppIcon className="w-4 h-4 shrink-0 text-[#0B8F86]" />
                       <span>Share Your Society Needs</span>

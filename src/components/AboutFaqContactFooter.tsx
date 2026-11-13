@@ -110,8 +110,8 @@ export function AboutFaqContactFooter() {
               >
                 Making Fitness a Shared Community Experience in Jaipur
               </h2>
-              <p className="mt-5 inline-block rounded-xl bg-[#E9F6F4] border-l-4 border-[#0B8F86] px-4 py-2.5 font-display font-extrabold text-xl sm:text-2xl text-[#123047] uppercase tracking-tight">
-                Move More. <span className="text-[#0B8F86]">Live Together.</span>
+              <p className="mt-5 w-full sm:w-auto sm:inline-block rounded-xl bg-[#E9F6F4] border border-[#0B8F86]/35 px-3.5 py-2.5 sm:px-4 font-display font-extrabold text-lg sm:text-2xl text-[#123047] uppercase tracking-tight">
+                Move More · <span className="text-[#0B8F86]">Live Together</span>
               </p>
             </div>
 
@@ -135,7 +135,7 @@ export function AboutFaqContactFooter() {
                 community experience.
               </p>
               <p className="mt-2 inline-block rounded-xl bg-[#F7FAF8] border border-[#0B8F86]/25 px-4 py-3 font-bold text-sm text-[#123047] uppercase tracking-wide">
-                Our Mission: Make Every Society an Active, Healthy, Happy &amp; Connected Community.
+                Our Mission: Make Every Society an Active, Healthy, Happy &amp; Connected Community
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export function AboutFaqContactFooter() {
                     type="button"
                     onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
                     aria-expanded={isOpen}
-                    className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 hover:bg-[#F7FAF8]/70 transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#0B8F86]"
+                    className="w-full px-4 py-4 sm:px-6 sm:py-5 text-left flex items-center justify-between gap-4 hover:bg-[#F7FAF8]/70 transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#0B8F86]"
                   >
                     <span className="font-display font-semibold text-base sm:text-lg text-[#123047]">
                       {faq.question}
@@ -184,7 +184,7 @@ export function AboutFaqContactFooter() {
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-6 pb-5 text-sm sm:text-base text-[#4A6072] leading-relaxed">
+                    <div className="px-4 pb-4 sm:px-6 sm:pb-5 text-sm sm:text-base text-[#4A6072] leading-relaxed">
                       {faq.answer}
                     </div>
                   )}
@@ -279,7 +279,7 @@ export function AboutFaqContactFooter() {
             </div>
 
             {/* Right Form Column */}
-            <div className="lg:col-span-7 bg-[#F7FAF8] rounded-3xl border border-[#123047]/10 p-6 sm:p-8">
+            <div className="lg:col-span-7 bg-[#F7FAF8] rounded-3xl border border-[#123047]/10 p-5 sm:p-8">
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -616,18 +616,18 @@ export function AboutFaqContactFooter() {
                 />
                 <span>FitCircle</span>
               </div>
-              <div className="space-y-2 pt-1">
-                <p className="inline-block rounded-lg bg-[#0B8F86]/25 border border-[#0B8F86]/50 px-3 py-1.5 font-display font-bold text-xs sm:text-sm text-white uppercase tracking-wide">
+              <div className="space-y-2 pt-1 max-w-full">
+                <p className="w-full sm:w-auto sm:inline-block rounded-lg bg-[#0B8F86]/25 border border-[#0B8F86]/50 px-3 py-1.5 font-display font-bold text-xs sm:text-sm text-white uppercase tracking-wide">
                   Fit Circle Delivers{' '}
-                  <span className="text-[#45C4B9]">Fit Society, Fit Community.</span>
+                  <span className="text-[#45C4B9]">Fit Society, Fit Community</span>
                 </p>
-                <p className="text-[10.5px] sm:text-xs font-bold uppercase tracking-wide whitespace-nowrap">
+                <p className="text-[9px] min-[375px]:text-[10.5px] sm:text-xs font-bold uppercase tracking-normal sm:tracking-wide whitespace-nowrap">
                   <span className="text-[#45C4B9]">Expert Curated</span>
-                  <span className="mx-1.5 text-white/40" aria-hidden="true">
+                  <span className="mx-1 sm:mx-1.5 text-white/40" aria-hidden="true">
                     ·
                   </span>
                   <span className="text-[#96D863]">Community Driven</span>
-                  <span className="mx-1.5 text-white/40" aria-hidden="true">
+                  <span className="mx-1 sm:mx-1.5 text-white/40" aria-hidden="true">
                     ·
                   </span>
                   <span className="text-[#F7A76C]">Fun Powered</span>
@@ -719,7 +719,7 @@ export function AboutFaqContactFooter() {
             <p>
               © {new Date().getFullYear()} FitCircle Jaipur.{' '}
               <span className="font-bold text-white uppercase tracking-wide">
-                Move More. Live Together.
+                Move More · Live Together
               </span>
             </p>
             <p>

@@ -12,6 +12,10 @@
     scroll-padding-top: 5rem;
   }
 
+  body {
+    overflow-x: clip;
+  }
+
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
   }

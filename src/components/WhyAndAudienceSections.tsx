@@ -31,7 +31,7 @@ export function WhyAndAudienceSections() {
               className="mt-2 font-display font-bold text-2xl sm:text-4xl text-[#123047] uppercase tracking-tight"
               style={{ textWrap: 'balance' }}
             >
-              Fitness Comes to Your Society. Your Community. Your Convenience.
+              Fitness Comes to Your Society · Your Community · Your Convenience
             </h2>
             <p className="mt-4 text-base sm:text-lg text-[#4A6072] leading-relaxed">
               Modern residential routines leave children drawn to screens, teenagers short on

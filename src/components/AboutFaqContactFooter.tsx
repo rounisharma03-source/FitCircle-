@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Check, CheckCircle2, ChevronDown, ExternalLink, Mail, MapPin, Phone, Send } from 'lucide-react';
+import { Check, CheckCircle2, ChevronDown, ExternalLink, Mail, MapPin, Phone } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { FAQ_ITEMS } from '../data/fitcircleData';
 import {
@@ -73,7 +73,8 @@ export function AboutFaqContactFooter() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [form, setForm] = useState<EnquiryFormValues>(INITIAL_FORM);
   const [honeypot, setHoneypot] = useState<string>('');
-  const [formError, setFormError] = useState<string>('');
+  const [nameError, setNameError] = useState<string>('');
+  const [phoneError, setPhoneError] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submittedSuccess, setSubmittedSuccess] = useState<boolean>(false);
   const [generatedWhatsappUrl, setGeneratedWhatsappUrl] = useState<string>('');
@@ -107,7 +108,8 @@ export function AboutFaqContactFooter() {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (isSubmitting) return;
-    setFormError('');
+    setNameError('');
+    setPhoneError('');
 
     // Hidden honeypot check to silently block spam bots
     if (honeypot.trim() !== '') {
@@ -117,23 +119,24 @@ export function AboutFaqContactFooter() {
       return;
     }
 
-    if (!form.name.trim()) {
-      setFormError('Please enter parent or your name.');
-      return;
-    }
-
+    const nextNameError = !form.name.trim() ? 'Please enter your name.' : '';
     const digitsOnly = form.whatsappNumber.replace(/\D/g, '');
-    if (!/^\d{10}$/.test(digitsOnly)) {
-      setFormError('Please enter a valid 10-digit WhatsApp number.');
-      return;
-    }
+    const nextPhoneError = !/^\d{10}$/.test(digitsOnly)
+      ? 'Please enter a 10-digit WhatsApp number.'
+      : '';
 
-    if (!form.societyName.trim()) {
-      setFormError('Please enter your society or community name.');
+    if (nextNameError || nextPhoneError) {
+      setNameError(nextNameError);
+      setPhoneError(nextPhoneError);
       return;
     }
 
     setIsSubmitting(true);
+
+    const whatsappUrl = buildEnquiryFormWhatsAppUrl({
+      ...form,
+      whatsappNumber: digitsOnly,
+    });
 
     const formData: Record<string, string> = {
       name: form.name.trim(),
@@ -142,6 +145,8 @@ export function AboutFaqContactFooter() {
       program: form.program,
       preferredTime: form.preferredTime,
       message: form.message.trim(),
+      source: 'WhatsApp button',
+      website: honeypot,
     };
 
     try {
@@ -151,23 +156,25 @@ export function AboutFaqContactFooter() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams(formData),
       });
-
-      const url = buildEnquiryFormWhatsAppUrl({
-        ...form,
-        whatsappNumber: digitsOnly,
-      });
-      setGeneratedWhatsappUrl(url);
-      setSubmittedSuccess(true);
-      setSubmissionCount((prev) => prev + 1);
-      setJustSubmitted(true);
-      setForm(INITIAL_FORM);
     } catch {
-      setFormError(
-        'Unable to submit right now. Please try again or use the WhatsApp enquiry button.'
-      );
+      // Proceed to open WhatsApp even if saving to the sheet fails, so no enquiry is lost
     } finally {
       setIsSubmitting(false);
     }
+
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setGeneratedWhatsappUrl(whatsappUrl);
+    setSubmittedSuccess(true);
+    setSubmissionCount((prev) => prev + 1);
+    setJustSubmitted(true);
+    setForm(INITIAL_FORM);
   }
 
   return (
@@ -363,10 +370,10 @@ export function AboutFaqContactFooter() {
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 {/* Hidden honeypot field to block spam bots */}
                 <div className="sr-only" aria-hidden="true">
-                  <label htmlFor="enquiry-company">Leave this field empty</label>
+                  <label htmlFor="enquiry-website">Leave this field empty</label>
                   <input
-                    id="enquiry-company"
-                    name="company"
+                    id="enquiry-website"
+                    name="website"
                     type="text"
                     tabIndex={-1}
                     autoComplete="off"
@@ -388,11 +395,24 @@ export function AboutFaqContactFooter() {
                       name="name"
                       type="text"
                       required
+                      aria-invalid={Boolean(nameError)}
                       value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      onChange={(e) => {
+                        setForm({ ...form, name: e.target.value });
+                        if (nameError) setNameError('');
+                      }}
                       placeholder="e.g., Ananya Sharma"
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none"
+                      className={`w-full rounded-xl bg-white border px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:outline-none ${
+                        nameError
+                          ? 'border-[#C8641F] focus:border-[#C8641F]'
+                          : 'border-[#123047]/15 focus:border-[#0B8F86]'
+                      }`}
                     />
+                    {nameError && (
+                      <p role="alert" className="mt-1.5 text-xs font-medium text-[#C8641F]">
+                        {nameError}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -409,11 +429,24 @@ export function AboutFaqContactFooter() {
                       inputMode="numeric"
                       maxLength={14}
                       required
+                      aria-invalid={Boolean(phoneError)}
                       value={form.whatsappNumber}
-                      onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+                      onChange={(e) => {
+                        setForm({ ...form, whatsappNumber: e.target.value });
+                        if (phoneError) setPhoneError('');
+                      }}
                       placeholder="10-digit WhatsApp number"
-                      className="w-full rounded-xl bg-white border border-[#123047]/15 px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:border-[#0B8F86] focus:outline-none tabular-nums"
+                      className={`w-full rounded-xl bg-white border px-4 py-2.5 text-base sm:text-sm text-[#123047] placeholder:text-[#4A6072]/60 focus:outline-none tabular-nums ${
+                        phoneError
+                          ? 'border-[#C8641F] focus:border-[#C8641F]'
+                          : 'border-[#123047]/15 focus:border-[#0B8F86]'
+                      }`}
                     />
+                    {phoneError && (
+                      <p role="alert" className="mt-1.5 text-xs font-medium text-[#C8641F]">
+                        {phoneError}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -423,13 +456,12 @@ export function AboutFaqContactFooter() {
                       htmlFor="enquiry-society"
                       className="block text-sm font-semibold text-[#123047] mb-1.5"
                     >
-                      Society / Community Name <span className="text-[#C8641F]">*</span>
+                      Society / Community Name
                     </label>
                     <input
                       id="enquiry-society"
                       name="societyName"
                       type="text"
-                      required
                       value={form.societyName}
                       onChange={(e) => setForm({ ...form, societyName: e.target.value })}
                       placeholder="e.g., Rangoli Gardens, Vaishali Nagar"
@@ -501,60 +533,37 @@ export function AboutFaqContactFooter() {
                   />
                 </div>
 
-                {formError && (
-                  <p
-                    role="alert"
-                    className="rounded-xl bg-[#F28C45]/15 border border-[#F28C45]/40 px-4 py-2.5 text-sm font-medium text-[#123047]"
-                  >
-                    {formError}
-                  </p>
-                )}
-
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <motion.button
-                    type="submit"
-                    disabled={isSubmitting}
-                    whileTap={isSubmitting ? undefined : { scale: 0.98 }}
-                    className={`w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-base transition-colors ${
-                      isSubmitting
-                        ? 'bg-[#0B8F86]/70 text-white cursor-not-allowed'
-                        : justSubmitted
-                          ? 'bg-[#4C8720] text-white cursor-pointer'
-                          : 'bg-[#0B8F86] text-white hover:bg-[#09766E] cursor-pointer'
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <span>Submitting...</span>
-                    ) : justSubmitted ? (
-                      <>
-                        <motion.span
-                          initial={{ scale: 0.5, rotate: -15 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          transition={{ type: 'spring', stiffness: 360, damping: 18 }}
-                          className="inline-flex"
-                        >
-                          <Check className="w-5 h-5 shrink-0" aria-hidden="true" />
-                        </motion.span>
-                        <span>Enquiry Sent!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 shrink-0" aria-hidden="true" />
-                        <span>Submit Enquiry</span>
-                      </>
-                    )}
-                  </motion.button>
-
-                  <a
-                    href={buildWhatsAppUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white border border-[#0B8F86]/35 text-[#0B8F86] font-semibold text-base hover:bg-[#E9F6F4] transition-colors"
-                  >
-                    <WhatsAppIcon className="w-5 h-5 shrink-0" />
-                    <span>WhatsApp Enquiry</span>
-                  </a>
-                </div>
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  whileTap={isSubmitting ? undefined : { scale: 0.98 }}
+                  className={`w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-base text-white transition-colors ${
+                    isSubmitting
+                      ? 'bg-[#0B8F86]/70 cursor-not-allowed'
+                      : 'bg-[#0B8F86] hover:bg-[#09766E] cursor-pointer'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <span>Opening WhatsApp...</span>
+                  ) : justSubmitted ? (
+                    <>
+                      <motion.span
+                        initial={{ scale: 0.5, rotate: -15 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', stiffness: 360, damping: 18 }}
+                        className="inline-flex"
+                      >
+                        <Check className="w-5 h-5 shrink-0" aria-hidden="true" />
+                      </motion.span>
+                      <span>WhatsApp Enquiry</span>
+                    </>
+                  ) : (
+                    <>
+                      <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                      <span>WhatsApp Enquiry</span>
+                    </>
+                  )}
+                </motion.button>
 
                 <AnimatePresence mode="wait">
                   {submittedSuccess && (

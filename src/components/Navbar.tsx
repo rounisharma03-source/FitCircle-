@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, useScroll, useSpring } from 'motion/react';
 import { buildWhatsAppUrl } from '../utils/whatsapp';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
@@ -16,6 +16,12 @@ const NAV_LINKS = [
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const whatsappHref = buildWhatsAppUrl();
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 220,
+    damping: 30,
+    restDelta: 0.001,
+  });
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#123047]/10">
@@ -121,6 +127,16 @@ export function Navbar() {
           </div>
         </div>
       )}
+      {/* Scroll Progress Indicator */}
+      <div
+        aria-hidden="true"
+        className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#123047]/5 pointer-events-none"
+      >
+        <motion.div
+          style={{ scaleX }}
+          className="h-full origin-left bg-gradient-to-r from-[#0B8F86] via-[#1CA59B] to-[#79BE43]"
+        />
+      </div>
     </header>
   );
 }

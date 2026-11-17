@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { motion, useScroll, useSpring } from 'motion/react';
 import { buildWhatsAppUrl } from '../utils/whatsapp';
@@ -15,6 +15,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState<string>('#top');
   const whatsappHref = buildWhatsAppUrl();
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -23,12 +24,38 @@ export function Navbar() {
     restDelta: 0.001,
   });
 
+  useEffect(() => {
+    function updateActiveSection() {
+      const scrollPos = window.scrollY + 120;
+      let current = '#top';
+
+      for (const link of NAV_LINKS) {
+        const el = document.querySelector(link.href);
+        if (el instanceof HTMLElement && el.offsetTop <= scrollPos) {
+          current = link.href;
+        }
+      }
+
+      setActiveHref(current);
+    }
+
+    updateActiveSection();
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    return () => window.removeEventListener('scroll', updateActiveSection);
+  }, []);
+
+  function handleNavSelect(href: string) {
+    setActiveHref(href);
+    setMobileOpen(false);
+  }
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#123047]/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 sm:gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 sm:gap-6">
         {/* Zone 1: Single-line Brand Wordmark */}
         <a
           href="#top"
+          onClick={() => handleNavSelect('#top')}
           className="flex items-center gap-2.5 text-[#123047] font-display font-bold text-xl tracking-tight whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0B8F86] rounded-md"
         >
           <motion.img
@@ -48,17 +75,26 @@ export function Navbar() {
         {/* Zone 2: Clean single-line navigation links */}
         <nav
           aria-label="Primary Navigation"
-          className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#123047]/80"
+          className="hidden lg:flex items-center gap-1.5 xl:gap-3 text-sm font-medium"
         >
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="whitespace-nowrap shrink-0 hover:text-[#0B8F86] transition-colors py-1 border-b-2 border-transparent hover:border-[#0B8F86] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0B8F86]"
-            >
-              {link.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const isActive = activeHref === link.href;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => handleNavSelect(link.href)}
+                aria-current={isActive ? 'location' : undefined}
+                className={`whitespace-nowrap shrink-0 px-2.5 xl:px-3 py-1.5 rounded-lg transition-colors focus:outline-none ${
+                  isActive
+                    ? 'bg-[#0B8F86] text-white font-semibold'
+                    : 'text-[#123047]/85 hover:bg-[#0B8F86] hover:text-white focus-visible:bg-[#0B8F86] focus-visible:text-white active:bg-[#0B8F86] active:text-white'
+                }`}
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Zone 3: Single primary action + Mobile toggle */}
@@ -94,26 +130,39 @@ export function Navbar() {
       {mobileOpen && (
         <div
           id="mobile-nav-drawer"
-          className="lg:hidden bg-white border-t border-[#123047]/10 px-4 py-4 space-y-1"
+          className="lg:hidden bg-white border-t border-[#123047]/10 px-4 py-4 space-y-1.5"
         >
           <a
             href="#top"
-            onClick={() => setMobileOpen(false)}
-            className="block px-3 py-3 rounded-lg text-base font-medium text-[#123047] hover:bg-[#F7FAF8]"
+            onClick={() => handleNavSelect('#top')}
+            aria-current={activeHref === '#top' ? 'location' : undefined}
+            className={`block px-3.5 py-3 rounded-lg text-base transition-colors focus:outline-none ${
+              activeHref === '#top'
+                ? 'bg-[#0B8F86] text-white font-semibold'
+                : 'font-medium text-[#123047] hover:bg-[#0B8F86] hover:text-white focus-visible:bg-[#0B8F86] focus-visible:text-white active:bg-[#0B8F86] active:text-white'
+            }`}
           >
             Home
           </a>
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg text-base font-medium text-[#123047] hover:bg-[#F7FAF8]"
-            >
-              {link.label}
-            </a>
-          ))}
-          <div className="pt-2">
+          {NAV_LINKS.map((link) => {
+            const isActive = activeHref === link.href;
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => handleNavSelect(link.href)}
+                aria-current={isActive ? 'location' : undefined}
+                className={`block px-3.5 py-3 rounded-lg text-base transition-colors focus:outline-none ${
+                  isActive
+                    ? 'bg-[#0B8F86] text-white font-semibold'
+                    : 'font-medium text-[#123047] hover:bg-[#0B8F86] hover:text-white focus-visible:bg-[#0B8F86] focus-visible:text-white active:bg-[#0B8F86] active:text-white'
+                }`}
+              >
+                {link.label}
+              </a>
+            );
+          })}
+          <div className="pt-3 mt-2 border-t border-[#123047]/10">
             <a
               href={whatsappHref}
               target="_blank"
